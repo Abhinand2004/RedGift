@@ -1,0 +1,240 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f8;
+}
+
+/* Outer container to center everything */
+.login-outer {
+  min-height: 100vh;
+  min-width: 100vw;
+  background: linear-gradient(120deg, #fff 70%, #ffe5e5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* This is the new main container with projection */
+.login-container {
+  background: #fff;
+  border-radius: 32px;
+  box-shadow: 0 10px 48px 0 rgba(255,0,0,0.15), 
+    0 2px 16px 0 rgba(50,0,0,0.03), 
+    0 1.5px 8px 0 rgba(100,0,0,0.04);
+  padding: 0;
+  transition: all 0.8s cubic-bezier(.4,0,.2,1);
+  /* Width/height slightly less than full page */
+  width: 90vw;
+  /* max-width: 1050px; */
+  height: 90vh;
+  min-height: 620px;
+  min-width: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.login-container.fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.login-main {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  border-radius: 30px;
+  overflow: hidden;
+  background: transparent;
+}
+
+/* Left Panel */
+.login-left {
+  width: 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  height: 100%;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 410px;
+  padding: 40px 38px 32px 38px;
+  box-shadow: 0 8px 48px rgba(255,0,0,0.10), 0 1.5px 8px 0 rgba(100,0,0,0.03);
+  border-radius: 22px;
+  border: 2px solid #ff2d2d16;
+  background-color: #fff;
+  animation: fadeInUp 0.8s cubic-bezier(.4,0,.2,1) forwards;
+  display: flex;
+  flex-direction: column;
+}
+
+.branding {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  justify-content: center;
+  margin-bottom: 18px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ffe5e5;
+}
+
+.logo-img {
+  height: 58px;
+  width: 58px;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px #ff2d2d18;
+  background: #fff;
+  object-fit: contain;
+  margin-right: 6px;
+}
+
+.project-title {
+  color: #ff2d2d;
+  font-size: 2.6rem;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  /* margin-bottom: 10px; */
+}
+
+
+
+
+.mui-select {
+  background: #fff;
+}
+
+.MuiInputLabel-root {
+  color: #ff2d2d !important;
+  font-weight: 200 !important;
+}
+
+.MuiOutlinedInput-root fieldset {
+  border-color: #ff2d2d30 !important;
+}
+
+.MuiOutlinedInput-root:hover fieldset {
+  border-color: #ff2d2d70 !important;
+}
+
+.Mui-selected, .MuiMenuItem-root.Mui-selected {
+  background: #ffe5e5 !important;
+  color: #ff2d2d !important;
+}
+
+.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #ff2d2d !important;
+}
+
+.mui-btn {
+  margin-top: 18px !important;
+  padding: 13px 0 !important;
+  font-weight: bold !important;
+  font-size: 1.1rem !important;
+  border-radius: 8px !important;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 12px #ff2d2d18;
+}
+
+.register-link {
+  margin-top: 16px;
+  text-align: center;
+  color: #888;
+  font-size: 1rem;
+}
+
+.register-link a {
+  color: #ff2d2d;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+.register-link a:hover {
+  color: #b71c1c;
+  text-decoration: underline;
+}
+
+/* Right Panel */
+.login-right {
+  width: 60%;
+  background: url('/login.jpeg') center/cover no-repeat;
+  border-radius: 0 0 0 120px;
+  height: 100%;
+}
+
+/* Hide image on smaller devices */
+@media (max-width: 1200px) {
+  .login-container {
+    width: 96vw;
+    max-width: 99vw;
+    min-width: 0;
+    height: 92vh;
+    min-height: 0;
+  }
+  .login-main {
+    border-radius: 22px;
+  }
+}
+
+@media (max-width: 960px) {
+  .login-main {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 18px;
+  }
+  .login-left {
+    width: 80%;
+    min-height: 50vh;
+  }
+  /* .login-right {
+    display: none;
+  } */
+  .login-box {
+    border: 1px solid #eee;
+    box-shadow: none;
+    border-radius: 18px;
+    padding: 30px 10px 26px 10px;
+    max-width: 98vw;
+  }
+  .login-container {
+    width: 100vw;
+    height: auto;
+    min-height: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0 0 30px 0;
+  }
+}
+
+@media (max-width: 500px) {
+  .project-title {
+    font-size: 1.6rem;
+  }
+  .logo-img {
+    height: 38px;
+    width: 38px;
+  }
+  .signin-heading {
+    font-size: 1.1rem;
+  }
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

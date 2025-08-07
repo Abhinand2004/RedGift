@@ -68,13 +68,18 @@ const AdminHospitalAndCollegeData = () => {
 
   async function handleApproval(item, type, state) {
     setUpdatingId(item._id);
+    
+    // console.log(type);
+    console.log(state);
+    
+    
+    
     try {
       const token = localStorage.getItem('token');
-      const userType = localStorage.getItem('userType');
       
       const response = await axios.put(`${BASE_URL}/approverequestbyadmin`, {
         targetId: item._id,
-        type: userType,
+        type,
         state: state
       }, {
         headers: {
@@ -82,7 +87,10 @@ const AdminHospitalAndCollegeData = () => {
           'Authorization': `Bearer ${token}`,
         },
       });
-
+          if (response) {
+            console.log("success");
+            
+          }
       // Update local state after successful API call
       setData(prevData => ({
         ...prevData,

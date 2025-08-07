@@ -1,35 +1,49 @@
 import React, { useState } from 'react';
 import { UserDetails } from '../components/UserDetails';
 import GetAllStudents from '../components/GetAllStudents';
-import CreateNewStudents from '../components/CreateNewStudents';
-import ShowPendingAcceptedStudents from '../components/ShowPendingAceeptedStudents';
 import ShowAllNotifications from '../components/ShowAllNotifications';
 import { SideNav } from '../components/SideNav';
 import ShowAllAmbulance from '../components/ShowAllAmbulance';
+import Showmyreq from '../components/Showmyreq';
+import { ChatList } from '../components/ChatList';
+import { ChatPage } from '../components/ChatPage'; // Import ChatPage
 
 const COMPONENTS = {
   "Profile": <UserDetails />,
-  "Create Student": <CreateNewStudents />,
+  "My Requests": <Showmyreq />,
   "Request Donors": <GetAllStudents />,
-  "Student Status": <ShowPendingAcceptedStudents />,
-  "Show Announcements": <ShowAllNotifications/>,
-    "Show Ambulance": <ShowAllAmbulance />,
+  "Show Announcements": <ShowAllNotifications />,
+  "Show Ambulance": <ShowAllAmbulance />,
 };
 
-const HomePageForCollege = () => {
+const HomePageForHospital = () => {
   const [selected, setSelected] = useState("Profile");
+  const [selectedChatUser, setSelectedChatUser] = useState(null);
+
+  const handleChatUserSelect = (user) => {
+    setSelectedChatUser(user);
+  };
+
+  const renderContent = () => {
+    if (selected === "Chats") {
+      return selectedChatUser ? (
+        <ChatPage receiver={selectedChatUser} onBack={() => setSelectedChatUser(null)} />
+      ) : (
+        <ChatList onSelectChat={handleChatUserSelect} />
+      );
+    }
+
+    return COMPONENTS[selected] || <div>Select a view</div>;
+  };
 
   return (
     <div className="flex w-screen h-screen">
-      {/* Sidebar */}
       <SideNav onSelect={setSelected} selected={selected} />
-
-      {/* Main content */}
-      <div className="flex-1 ml-20 md:ml-64 p-4">
-        {COMPONENTS[selected] || <div>Select a view</div>}
+      <div className="flex-1 ml-20 md:ml-64 p-4 overflow-hidden">
+        {renderContent()}
       </div>
     </div>
   );
 };
 
-export default HomePageForCollege;
+export default HomePageForHospital;

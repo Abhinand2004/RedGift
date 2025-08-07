@@ -1,21 +1,10 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Search, GraduationCap, Hospital, CheckCircle, XCircle, Filter, Loader2 } from "lucide-react";
+import { BASE_URL } from './api.jsx';
 
-// Mock data for demonstration
-const mockData = {
-  colleges: [
-    { _id: "1", name: "MIT Institute of Technology", isApproved: true },
-    { _id: "2", name: "Stanford University", isApproved: false },
-    { _id: "3", name: "Harvard University", isApproved: true },
-    { _id: "4", name: "Cambridge College", isApproved: false },
-  ],
-  hospitals: [
-    { _id: "5", name: "General Hospital", isApproved: true },
-    { _id: "6", name: "City Medical Center", isApproved: false },
-    { _id: "7", name: "St. Mary's Hospital", isApproved: true },
-    { _id: "8", name: "Regional Healthcare", isApproved: false },
-  ]
-};
+// You'll need to define BASE_URL or import it from your config
+
 
 const AdminHospitalAndCollegeData = () => {
   const [data, setData] = useState({ colleges: [], hospitals: [] });
@@ -32,13 +21,47 @@ const AdminHospitalAndCollegeData = () => {
   async function fetchAllData() {
     setLoading(true);
     try {
-      // Simulate API call with mock data
-      setTimeout(() => {
-        setData(mockData);
-        setLoading(false);
-      }, 1000);
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.get(`${BASE_URL}/getallhopitalandcollegedata`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      console.log('API Response:', response.data);
+      
+      // Parse the response data based on the actual API structure
+      // If response.data is an array of mixed colleges and hospitals
+      if (Array.isArray(response.data)) {
+        const colleges = response.data.filter(item => item.userType === 'college' || item.type === 'college');
+        const hospitals = response.data.filter(item => item.userType === 'hospital' || item.type === 'hospital');
+        
+        setData({
+          colleges: colleges,
+          hospitals: hospitals
+        });
+      } 
+      // If response.data has separate arrays for colleges and hospitals
+      else if (response.data.colleges || response.data.hospitals) {
+        setData({
+          colleges: response.data.colleges || [],
+          hospitals: response.data.hospitals || []
+        });
+      }
+      // If response.data structure is different, initialize empty arrays
+      else {
+        setData({
+          colleges: [],
+          hospitals: []
+        });
+      }
+      
     } catch (err) {
-      alert("Failed to fetch data");
+      console.error('Failed to fetch data:', err);
+      alert("Failed to fetch data. Please check your connection and try again.");
+    } finally {
       setLoading(false);
     }
   }
@@ -46,23 +69,43 @@ const AdminHospitalAndCollegeData = () => {
   async function handleApproval(item, type, state) {
     setUpdatingId(item._id);
     try {
-      // Simulate API call
-      setTimeout(() => {
-        setData(prevData => ({
-          ...prevData,
-          [type + 's']: prevData[type + 's'].map(dataItem =>
-            dataItem._id === item._id ? { ...dataItem, isApproved: state } : dataItem
-          )
-        }));
-        setUpdatingId(null);
-      }, 1500);
+      const token = localStorage.getItem('token');
+      const userType = localStorage.getItem('userType');
+      
+      const response = await axios.put(`${BASE_URL}/approverequestbyadmin`, {
+        targetId: item._id,
+        type: userType,
+        state: state
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      // Update local state after successful API call
+      setData(prevData => ({
+        ...prevData,
+        [type + 's']: prevData[type + 's'].map(dataItem =>
+          dataItem._id === item._id ? { ...dataItem, isApproved: state } : dataItem
+        )
+      }));
+      
     } catch (err) {
-      alert("Failed to update approval.");
+      console.error('Failed to update approval:', err);
+      alert("Failed to update approval. Please try again.");
+    } finally {
       setUpdatingId(null);
     }
   }
 
   const filtered = (list) => {
+    // Ensure list is an array before filtering
+    if (!Array.isArray(list)) {
+      console.warn('Filter function received non-array:', list);
+      return [];
+    }
+    
     return list.filter((item) => {
       if (search && !item?.name?.toLowerCase().includes(search.toLowerCase()))
         return false;

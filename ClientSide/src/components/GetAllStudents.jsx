@@ -51,6 +51,8 @@ const GetAllStudents = () => {
       setStudents(res.data || []);
     } catch (err) {
       setError("Failed to fetch students");
+      console.log(err);
+      
     } finally {
       setLoading(false);
     }

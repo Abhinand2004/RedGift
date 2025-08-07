@@ -30,6 +30,7 @@ import ShowAllNotifications from '../components/ShowAllNotifications';
 import CreateAmbulance from '../components/CreateAmbulance';
 import ShowAllAmbulance from '../components/ShowAllAmbulance';
 import { SideNav } from '../components/SideNav';
+import { ChatList } from '../components/ChatList';
 
 const COMPONENTS = {
   "Profile":<UserDetails/>,
@@ -37,6 +38,8 @@ const COMPONENTS = {
   "My Requests": <Showmyreq />,
   "Show Announcements": <ShowAllNotifications />,
   "Show Ambulance": <ShowAllAmbulance />,
+    "Chats": <ChatList />, 
+  
 };
 
 const HomePageForUser = () => {

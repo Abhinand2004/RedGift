@@ -1,23 +1,28 @@
+import './App.css';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Login } from './components/Login';
+import { Register } from './components/Register';
+import { HomePage } from './pages/HomePage';
+import {ChatList} from './components/ChatList';
+import {ChatPage} from './components/ChatPage';
 
-import './App.css'
-import { Login } from './components/Login'
-import {BrowserRouter,Router,Route,Routes} from "react-router-dom"
-import { Register } from './components/Register'
-import { HomePage } from './pages/HomePage'
 function App() {
-
   return (
-    <>
-      <BrowserRouter>
-        <Routes>
-          <Route path='/' element={<HomePage/>}/>
+    <BrowserRouter>
+      <Routes>
+        {/* Auth Routes */}
+        <Route path='/login' element={<Login />} />
+        <Route path='/register' element={<Register />} />
 
-          <Route path='/login' element={<Login/>}/>
-          <Route path='/register' element={<Register/>}/>
-        </Routes>
-      </BrowserRouter>
-    </>
-  )
+        {/* Main Dashboard */}
+        <Route path='/' element={<HomePage />} />
+
+        {/* Chat Routes */}
+        <Route path='/chats' element={<ChatList />} />
+        <Route path='/chat/:id' element={<ChatPage />} />  {/* ✅ This line fixes your issue */}
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

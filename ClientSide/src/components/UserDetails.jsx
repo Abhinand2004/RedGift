@@ -15,8 +15,12 @@ export const UserDetails = () => {
   const navigate = useNavigate();
   const usertype = localStorage.getItem('userType');
   const token = localStorage.getItem('token');
-
+   
   const fetchData = async () => {
+    const token=localStorage.getItem("token")
+      if (!token) {
+        navigate("/login")
+      }
     try {
       const res = await axios.get(`${BASE_URL}/fetchuserdata/${usertype}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -28,6 +32,7 @@ export const UserDetails = () => {
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
+              navigate("/login")
     } finally {
       setLoading(false);
     }
@@ -36,6 +41,7 @@ export const UserDetails = () => {
   useEffect(() => {
     if (usertype && token) fetchData();
     else setLoading(false);
+
   }, [usertype, token]);
 
   const handleDownloadCertificate = async () => {

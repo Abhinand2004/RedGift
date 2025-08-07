@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BASE_URL } from './api.jsx';
+import { ChatPage } from './ChatPage';
 import {
   MdBloodtype,
   MdMessage,
@@ -11,13 +12,14 @@ import {
   MdLocationOn,
   MdPinDrop,
   MdMap,
+  MdChat,
 } from 'react-icons/md';
 
 const Showmyreq = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedPerson, setSelectedPerson] = useState(null); // New state to hold selected student
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -27,7 +29,8 @@ const Showmyreq = () => {
         const res = await axios.get(`${BASE_URL}/showmyrequest`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setRequests(res.data.requests || []);
+        const acceptedRequests = (res.data.requests || []).filter(req => req.status === 'accepted');
+        setRequests(acceptedRequests);
         setError('');
       } catch (err) {
         setError(err.response?.data?.message || err.message || 'Error fetching requests');
@@ -40,72 +43,36 @@ const Showmyreq = () => {
     fetchRequests();
   }, []);
 
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case 'accepted':
-        return 'bg-green-100 text-green-700 border-green-500';
-      case 'rejected':
-        return 'bg-red-100 text-red-700 border-red-500';
-      default:
-        return 'bg-yellow-100 text-yellow-700 border-yellow-500';
-    }
+  const handleMessage = (student) => {
+    setSelectedPerson(student); // Set selected student instead of navigating
   };
 
-  const handleFilter = (status) => {
-    setFilterStatus(status);
-  };
-
-  const filteredRequests =
-    filterStatus === 'all'
-      ? requests
-      : requests.filter((req) => req.status === filterStatus);
+  // If person is selected, show chat directly
+  if (selectedPerson) {
+    return <ChatPage person={selectedPerson} />;
+  }
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-10 py-6 bg-gray-50 min-h-screen font-[Poppins]">
-      {/* Heading + Filter */}
-      <div className="flex flex-col md:flex-row items-center justify-between mb-6 px-2">
-        <h2 className="text-3xl font-bold text-red-600 tracking-wide mb-4 md:mb-0">
-          My Blood Requests
-        </h2>
-
-        <div className="flex flex-wrap justify-center md:justify-end gap-3">
-          {['all', 'accepted', 'pending', 'rejected'].map((status) => (
-            <button
-              key={status}
-              onClick={() => handleFilter(status)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold capitalize transition-all duration-200
-                ${filterStatus === status
-                  ? 'bg-red-600 text-white shadow-md'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}
-              `}
-            >
-              {status === 'all' ? 'All' : status}
-            </button>
-          ))}
-        </div>
-      </div>
+      <h2 className="text-3xl font-bold text-red-600 tracking-wide mb-6">Accepted Blood Requests</h2>
 
       {loading && <p className="text-center text-gray-500">Loading...</p>}
       {error && <p className="text-center text-red-500">{error}</p>}
-      {!loading && filteredRequests.length === 0 && (
-        <p className="text-center text-gray-600">No requests found.</p>
+      {!loading && requests.length === 0 && (
+        <p className="text-center text-gray-600">No accepted requests found.</p>
       )}
 
       <div className="flex flex-col gap-6">
-        {filteredRequests.map((req) => (
+        {requests.map((req) => (
           <div
             key={req._id}
-            className="bg-white w-full shadow-lg rounded-xl p-6 border-l-4 border-red-400 hover:shadow-2xl transition duration-300"
+            className="bg-white w-full shadow-lg rounded-xl p-6 border-l-4 border-green-500 hover:shadow-2xl transition duration-300"
           >
             <div className="flex flex-col md:flex-row md:justify-between gap-4 mb-4 items-start">
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 <MdBloodtype className="text-red-500 text-2xl" />
-                <span
-                  className={`text-sm font-bold px-4 py-1 rounded-full uppercase border ${getStatusStyle(
-                    req.status
-                  )}`}
-                >
-                  {req.status}
+                <span className="text-sm font-bold px-4 py-1 rounded-full uppercase border bg-green-100 text-green-700 border-green-500">
+                  Accepted
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-700">
@@ -126,11 +93,9 @@ const Showmyreq = () => {
               </div>
             </div>
 
-            {/* Student Details */}
             <div className="bg-gray-50 rounded-md border border-gray-200 p-4">
-              <h4 className="text-md font-semibold text-red-500 mb-2">
-                Student Details
-              </h4>
+              <h4 className="text-md font-semibold text-red-500 mb-2">Student Details</h4>
+
               {Array.isArray(req.student) && req.student.length > 0 ? (
                 req.student.map((stud, i) => (
                   <div
@@ -139,69 +104,46 @@ const Showmyreq = () => {
                   >
                     <div className="flex items-center gap-2">
                       <MdPerson className="text-red-400" />
-                      <span>
-                        <strong>Name:</strong> {stud.name}
-                      </span>
+                      <span><strong>Name:</strong> {stud.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <MdEmail className="text-red-400" />
-                      <span>
-                        <strong>Email:</strong> {stud.email}
-                      </span>
+                      <span><strong>Email:</strong> {stud.email}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <MdBloodtype className="text-red-400" />
-                      <span>
-                        <strong>Blood Group:</strong> {stud.bloodGroup}
-                      </span>
+                      <span><strong>Blood Group:</strong> {stud.bloodGroup}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MdPhone className="text-red-400" />
+                      <span><strong>Phone:</strong> {stud.phone || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MdLocationOn className="text-red-400" />
+                      <span><strong>Address:</strong> {stud.address || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MdPinDrop className="text-red-400" />
+                      <span><strong>Pincode:</strong> {stud.pincode || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MdMap className="text-red-400" />
+                      <span><strong>State:</strong> {stud.state || 'N/A'}</span>
                     </div>
 
-                    {req.status === 'accepted' && (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <MdPhone className="text-red-400" />
-                          <span>
-                            <strong>Phone:</strong>{' '}
-                            {stud.phone || (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MdLocationOn className="text-red-400" />
-                          <span>
-                            <strong>Address:</strong>{' '}
-                            {stud.address || (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MdPinDrop className="text-red-400" />
-                          <span>
-                            <strong>Pincode:</strong>{' '}
-                            {stud.pincode || (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MdMap className="text-red-400" />
-                          <span>
-                            <strong>State:</strong>{' '}
-                            {stud.state || (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </span>
-                        </div>
-                      </>
-                    )}
+                    <div className="col-span-full flex justify-end mt-2">
+                      <button
+                        onClick={() => handleMessage(stud)}
+                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700"
+                      >
+                        <MdChat className="text-lg" />
+                        Message
+                      </button>
+                    </div>
                   </div>
                 ))
               ) : (
-                <div className="text-red-500 text-sm">
-                  Student details not found.
-                </div>
+                <div className="text-red-500 text-sm">Student details not found.</div>
               )}
             </div>
           </div>

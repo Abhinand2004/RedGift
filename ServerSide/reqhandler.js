@@ -11,6 +11,7 @@ import Notification from './Models/Notification.js';
 import Ambulance from './Models/Ambulance.js';
 import path from 'path';
 import fs from 'fs'
+import Message from './Models/Message.js';
 
 //****************REGISTER EVERY USER************************ *//
 export async function addAdmin(req, res) {
@@ -223,7 +224,7 @@ export async function login(req, res) {
 
     const token = jwt.sign(   { userId: user._id, role: usertype },  process.env.JWT_KEY,  { expiresIn: "24h" });
 
-  
+    
     res.status(200).send({ token, usertype, userId: user._id, email: user.email});
 
   } catch (error) {
@@ -641,6 +642,9 @@ export const setApprovalStatusByAdmin = async (req, res) => {
 export const getAllCollegesAndHospitals = async (req, res) => {
   try {
     const adminId = req.user.userId;
+
+    console.log(adminId);
+    
     
     
 
@@ -871,4 +875,63 @@ export const deleteAmbulance = async (req, res) => {
   } catch (error) {
     res.status(500).send({ message: 'Server error', error: error.message });
   }
+};
+
+
+
+
+
+
+
+export const getChatList = async (req, res) => {
+  const currentUserId = req.user.userId;
+
+  const messages = await Message.find({
+    $or: [
+      { senderId: currentUserId },
+      { receiverId: currentUserId }
+    ]
+  });
+
+  const participantIds = new Set();
+  messages.forEach(msg => {
+    if (msg.senderId.toString() !== currentUserId) participantIds.add(msg.senderId.toString());
+    if (msg.receiverId.toString() !== currentUserId) participantIds.add(msg.receiverId.toString());
+  });
+
+  const ids = Array.from(participantIds);
+
+  const users = await User.find({ _id: { $in: ids } }).select('-password');
+  const students = await Student.find({ _id: { $in: ids } }).select('-password');
+  const hospitals = await Hospital.find({ _id: { $in: ids } }).select('-password');
+
+  res.json([...users, ...students, ...hospitals]);
+};
+
+export const getMessages = async (req, res) => {
+  const currentUserId = req.user.userId;
+  const { otherUserId } = req.params;
+
+  const messages = await Message.find({
+    $or: [
+      { senderId: currentUserId, receiverId: otherUserId },
+      { senderId: otherUserId, receiverId: currentUserId }
+    ]
+  }).sort({ timestamp: 1 });
+
+  res.json(messages);
+};
+
+export const sendMessage = async (req, res) => {
+  const senderId = req.user.userId;
+  const { receiverId, content } = req.body; // ✅ use content instead of text
+
+  const message = new Message({
+    senderId,
+    receiverId,
+    content // ✅ match your schema
+  });
+
+  await message.save();
+  res.status(201).json(message);
 };

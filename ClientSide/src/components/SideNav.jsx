@@ -27,6 +27,8 @@ const allNavItems = [
   { label: "Create Student", icon: <MdPeople />, roles: ["college"] },
   { label: "Show Requests", icon: <MdAssignment />, roles: ["student"] },
   { label: "Student Status", icon: <MdAssignment />, roles: ["college"] },
+  { label: "Chats", icon: <MdAssignment />, roles: ["hospital", "student", "user"] },
+
 ];
 
 export const SideNav = ({ onSelect, selected }) => {
@@ -34,7 +36,7 @@ export const SideNav = ({ onSelect, selected }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [userType, setUserType] = useState("");
   const navigate = useNavigate();
-
+  
   useEffect(() => {
     const type = localStorage.getItem("userType");
     setUserType(type);

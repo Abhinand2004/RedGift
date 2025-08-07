@@ -58,4 +58,10 @@ router.route('/deleteambulance').delete(Auth,rh.deleteAmbulance)
 
 router.route("/findnotapprovedstudents").get(Auth,rh.showpendingapprovedstudents)
 
+
+
+router.get('/chatlist', Auth, rh.getChatList);
+router.get('/messages/:otherUserId', Auth, rh.getMessages);
+router.post('/message', Auth, rh.sendMessage);
+
 export default router;

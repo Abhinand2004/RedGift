@@ -118,7 +118,7 @@ const AcceptedStudentsWithCertificates = () => {
   };
 
   // Upload the generated PDF blob to backend
-  const handleCreateCertificate = async (student) => {
+  const handleCreateCertificate = async (student, requestId) => {
     if (!hospitalData) {
       alert('Hospital details not found.');
       return;
@@ -129,6 +129,7 @@ const AcceptedStudentsWithCertificates = () => {
 
       const formData = new FormData();
       formData.append('studentId', student._id);
+      formData.append('requestId', requestId); // <== Send request id here
       formData.append('collegeId', hospitalData._id || hospitalData.collegeId || '');
       formData.append('collegeName', hospitalData.name || hospitalData.collegeName || 'Hospital Name');
       formData.append('certificate', pdfBlob, `${student.name}_certificate.pdf`);
@@ -242,7 +243,7 @@ const AcceptedStudentsWithCertificates = () => {
                     <div className="mt-4 md:mt-0 flex flex-col md:flex-row gap-2">
                       {!certificates[stud._id] ? (
                         <button
-                          onClick={() => handleCreateCertificate(stud)}
+                          onClick={() => handleCreateCertificate(stud, req._id)} // pass request _id here
                           className="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 font-semibold transition-colors duration-200 whitespace-nowrap"
                         >
                           <AddIcon />

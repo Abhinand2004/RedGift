@@ -942,16 +942,18 @@ export const sendMessage = async (req, res) => {
 
 
 //************CHAT SECTION END********** */
-
 import Certificate from "./Models/Certificate.js";
+
+
 export const createpdf = async (req, res) => {
   try {
-    const { studentId, collegeId, collegeName } = req.body;
+    const { studentId, collegeId, collegeName, requestId } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ error: "Certificate file is required" });
     }
 
+    // Create the certificate document
     const newCert = await Certificate.create({
       studentId,
       collegeId,
@@ -959,8 +961,13 @@ export const createpdf = async (req, res) => {
       certificateUrl: `/uploads/${req.file.filename}`, 
     });
 
+    // Delete the request by requestId
+    if (requestId) {
+      await Requests.findByIdAndDelete(requestId);
+    }
+
     res.status(201).json({
-      message: "Certificate uploaded successfully",
+      message: "Certificate uploaded successfully and request deleted",
       data: newCert,
     });
   } catch (err) {
@@ -968,7 +975,6 @@ export const createpdf = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
-
 
 
 

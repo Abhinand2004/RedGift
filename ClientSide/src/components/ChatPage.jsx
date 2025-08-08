@@ -84,7 +84,6 @@ export const ChatPage = ({ person }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setMessages((prev) => [...prev, data]);
       socket.emit('send_message', data);
       setMsg('');
     } catch (err) {

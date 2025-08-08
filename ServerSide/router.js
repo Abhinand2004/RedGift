@@ -19,6 +19,12 @@ router.route("/edituserdata/:type").put(
   upload.single("certificate"), // 'certificate' is the field name used in form-data
   rh.editUserData
 );
+router.route("/certificate").post(
+  Auth,
+  upload.single("certificate"), // 'certificate' is the field name used in form-data
+  rh.createpdf
+);
+
 
 router.get('/certificate/:id', Auth, rh.downloadCertificate);
 
@@ -63,5 +69,8 @@ router.route("/findnotapprovedstudents").get(Auth,rh.showpendingapprovedstudents
 router.get('/chatlist', Auth, rh.getChatList);
 router.get('/messages/:otherUserId', Auth, rh.getMessages);
 router.post('/message', Auth, rh.sendMessage);
+
+
+router.get("/mycertificates", Auth, rh.showCertificates);
 
 export default router;

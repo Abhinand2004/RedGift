@@ -6,6 +6,7 @@ import Requistacceptstudent from "../components/Requistacceptstudent";
 import { SideNav } from '../components/SideNav';
 import { ChatList } from '../components/ChatList';
 import { ChatPage } from '../components/ChatPage'; // ✅ Import ChatPage
+import ShowCertificates from '../components/ShowCirtificates';
 
 const HomePageforStudent = () => {
   const [selected, setSelected] = useState("Profile"); 
@@ -17,6 +18,7 @@ const HomePageforStudent = () => {
     "Show Requests": <Requistacceptstudent />,
     "Show Announcements": <ShowAllNotifications />,
     "Show Ambulance": <ShowAllAmbulance />,
+    "Show Cirtificates":<ShowCertificates/>
   };
 
   return (
@@ -28,7 +30,7 @@ const HomePageforStudent = () => {
       }} selected={selected} />
 
       {/* Main content */}
-      <div className="flex-1 ml-20 md:ml-64 p-4 overflow-hidden">
+      <div className="flex-1 ml-20 md:ml-64 p-4 ">
         {selected === "Chats" && !chatPerson && (
           <ChatList onSelectChat={(person) => setChatPerson(person)} />
         )}

@@ -880,7 +880,7 @@ export const deleteAmbulance = async (req, res) => {
 
 
 
-
+//****************************CHAT SECTION***************************** */
 
 
 export const getChatList = async (req, res) => {
@@ -908,6 +908,8 @@ export const getChatList = async (req, res) => {
   res.json([...users, ...students, ...hospitals]);
 };
 
+
+
 export const getMessages = async (req, res) => {
   const currentUserId = req.user.userId;
   const { otherUserId } = req.params;
@@ -922,16 +924,66 @@ export const getMessages = async (req, res) => {
   res.json(messages);
 };
 
+
+
+
 export const sendMessage = async (req, res) => {
   const senderId = req.user.userId;
-  const { receiverId, content } = req.body; // ✅ use content instead of text
-
+  const { receiverId, content } = req.body; 
   const message = new Message({
     senderId,
     receiverId,
-    content // ✅ match your schema
+    content 
   });
 
   await message.save();
   res.status(201).json(message);
+};
+
+
+//************CHAT SECTION END********** */
+
+import Certificate from "./Models/Certificate.js";
+export const createpdf = async (req, res) => {
+  try {
+    const { studentId, collegeId, collegeName } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "Certificate file is required" });
+    }
+
+    const newCert = await Certificate.create({
+      studentId,
+      collegeId,
+      collegeName,
+      certificateUrl: `/uploads/${req.file.filename}`, 
+    });
+
+    res.status(201).json({
+      message: "Certificate uploaded successfully",
+      data: newCert,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+
+
+
+export const showCertificates = async (req, res) => {
+  try {
+    const studentId = req.user.userId;  
+    if (!studentId) {
+      return res.status(400).json({ error: "Student ID missing" });
+    }
+
+    const certificates = await Certificate.find({ studentId }).select('-__v').lean();
+
+    res.status(200).json({ certificates });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error fetching certificates" });
+  }
 };

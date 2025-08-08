@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Search, GraduationCap, Hospital, CheckCircle, XCircle, Filter, Loader2 } from "lucide-react";
+import { Search, GraduationCap, Hospital, CheckCircle, XCircle, Filter, Loader2, Download } from "lucide-react";
 import { BASE_URL } from './api.jsx';
-
-// You'll need to define BASE_URL or import it from your config
-
 
 const AdminHospitalAndCollegeData = () => {
   const [data, setData] = useState({ colleges: [], hospitals: [] });
@@ -30,10 +27,6 @@ const AdminHospitalAndCollegeData = () => {
         },
       });
       
-      console.log('API Response:', response.data);
-      
-      // Parse the response data based on the actual API structure
-      // If response.data is an array of mixed colleges and hospitals
       if (Array.isArray(response.data)) {
         const colleges = response.data.filter(item => item.userType === 'college' || item.type === 'college');
         const hospitals = response.data.filter(item => item.userType === 'hospital' || item.type === 'hospital');
@@ -43,14 +36,12 @@ const AdminHospitalAndCollegeData = () => {
           hospitals: hospitals
         });
       } 
-      // If response.data has separate arrays for colleges and hospitals
       else if (response.data.colleges || response.data.hospitals) {
         setData({
           colleges: response.data.colleges || [],
           hospitals: response.data.hospitals || []
         });
       }
-      // If response.data structure is different, initialize empty arrays
       else {
         setData({
           colleges: [],
@@ -69,11 +60,6 @@ const AdminHospitalAndCollegeData = () => {
   async function handleApproval(item, type, state) {
     setUpdatingId(item._id);
     
-    // console.log(type);
-    console.log(state);
-    
-    
-    
     try {
       const token = localStorage.getItem('token');
       
@@ -87,17 +73,15 @@ const AdminHospitalAndCollegeData = () => {
           'Authorization': `Bearer ${token}`,
         },
       });
-          if (response) {
-            console.log("success");
-            
-          }
-      // Update local state after successful API call
-      setData(prevData => ({
-        ...prevData,
-        [type + 's']: prevData[type + 's'].map(dataItem =>
-          dataItem._id === item._id ? { ...dataItem, isApproved: state } : dataItem
-        )
-      }));
+      
+      if (response) {
+        setData(prevData => ({
+          ...prevData,
+          [type + 's']: prevData[type + 's'].map(dataItem =>
+            dataItem._id === item._id ? { ...dataItem, isApproved: state } : dataItem
+          )
+        }));
+      }
       
     } catch (err) {
       console.error('Failed to update approval:', err);
@@ -107,12 +91,37 @@ const AdminHospitalAndCollegeData = () => {
     }
   }
 
-  const filtered = (list) => {
-    // Ensure list is an array before filtering
-    if (!Array.isArray(list)) {
-      console.warn('Filter function received non-array:', list);
-      return [];
+  const handleDownloadCertificate = async (hospitalId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${BASE_URL}/certificate/${hospitalId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        responseType: 'blob'
+      });
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `certificate_${hospitalId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        link.remove();
+      }, 100);
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      alert('Failed to download certificate. Please try again.');
     }
+  };
+
+  const filtered = (list) => {
+    if (!Array.isArray(list)) return [];
     
     return list.filter((item) => {
       if (search && !item?.name?.toLowerCase().includes(search.toLowerCase()))
@@ -142,7 +151,6 @@ const AdminHospitalAndCollegeData = () => {
             key={item._id}
             className="group relative bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:border-gray-200 transition-all duration-300 transform hover:-translate-y-1"
           >
-            {/* Gradient accent */}
             <div className="absolute inset-0 bg-gradient-to-r from-red-50 to-red-100 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             
             <div className="relative z-10">
@@ -155,11 +163,12 @@ const AdminHospitalAndCollegeData = () => {
                     <h3 className="text-lg font-semibold text-gray-900 group-hover:text-gray-800">
                       {item.name}
                     </h3>
+                    <p className="text-sm text-gray-500">{item.email}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="mb-6">
+              <div className="mb-6 space-y-3">
                 <span
                   className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
                     item.isApproved
@@ -170,6 +179,17 @@ const AdminHospitalAndCollegeData = () => {
                   {item.isApproved ? <CheckCircle size={16} /> : <XCircle size={16} />}
                   {item.isApproved ? "Approved" : "Pending Review"}
                 </span>
+
+                {type === "hospital" && (
+                  <button
+                    onClick={() => handleDownloadCertificate(item._id)}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-full transition-colors duration-200"
+                    disabled={!item.certificateUrl}
+                  >
+                    <Download size={16} />
+                    {item.certificateUrl ? "Download Certificate" : "No Certificate"}
+                  </button>
+                )}
               </div>
 
               <div className="flex gap-3">
@@ -254,11 +274,6 @@ const AdminHospitalAndCollegeData = () => {
                 <option value="college">Colleges</option>
                 <option value="hospital">Hospitals</option>
               </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none mt-7">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
             </div>
 
             {/* Status Filter */}
@@ -273,11 +288,6 @@ const AdminHospitalAndCollegeData = () => {
                 <option value="true">Approved</option>
                 <option value="false">Pending</option>
               </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none mt-7">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
             </div>
           </div>
         </div>

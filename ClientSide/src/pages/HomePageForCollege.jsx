@@ -39,7 +39,7 @@ const HomePageForHospital = () => {
   return (
     <div className="flex w-screen h-screen">
       <SideNav onSelect={setSelected} selected={selected} />
-      <div className="flex-1 ml-20 md:ml-64 p-4 overflow-hidden">
+      <div className="flex-1 ml-20 md:ml-64 p-4 ">
         {renderContent()}
       </div>
     </div>

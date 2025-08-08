@@ -11,6 +11,7 @@ import {
   MdMenu,
   MdAccountCircle,
   MdLogout,
+   MdMessage
 } from "react-icons/md";
 import { FaAmbulance } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -27,7 +28,9 @@ const allNavItems = [
   { label: "Create Student", icon: <MdPeople />, roles: ["college"] },
   { label: "Show Requests", icon: <MdAssignment />, roles: ["student"] },
   { label: "Student Status", icon: <MdAssignment />, roles: ["college"] },
-  { label: "Chats", icon: <MdAssignment />, roles: ["hospital", "student", "user"] },
+  { label: "Chats", icon: <MdMessage />, roles: ["hospital", "student", "user"] },
+  { label: "Creat Cirtificate", icon: <MdAssignment />, roles: ["hospital"] },
+  { label: "Show Cirtificates", icon: <MdAssignment />, roles: ["student"] },
 
 ];
 

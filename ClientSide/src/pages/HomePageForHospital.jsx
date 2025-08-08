@@ -7,6 +7,7 @@ import ShowAllAmbulance from '../components/ShowAllAmbulance';
 import Showmyreq from '../components/Showmyreq';
 import { ChatList } from '../components/ChatList';
 import { ChatPage } from '../components/ChatPage'; // ✅ Import this
+import AcceptedStudentsWithCertificates from '../components/CreateCetificate';
 
 const COMPONENTS = {
   "Profile": <UserDetails />,
@@ -14,6 +15,7 @@ const COMPONENTS = {
   "Request Donors": <GetAllStudents />,
   "Show Announcements": <ShowAllNotifications />,
   "Show Ambulance": <ShowAllAmbulance />,
+  "Creat Cirtificate":<AcceptedStudentsWithCertificates/>,
 };
 
 const HomePageForHospital = () => {
@@ -24,7 +26,7 @@ const HomePageForHospital = () => {
     <div className="flex w-screen h-screen">
       <SideNav onSelect={setSelected} selected={selected} />
 
-      <div className="flex-1 ml-20 md:ml-64 p-4 overflow-hidden">
+      <div className="flex-1 ml-20 md:ml-64 p-4 ">
         {selected === "Chats" && !chatPerson && (
           <ChatList onSelectChat={(person) => setChatPerson(person)} />
         )}

@@ -7,6 +7,8 @@ import { BASE_URL } from './api.jsx';
 import { Email, Phone } from '@mui/icons-material';
 import { EditModal } from './Edit.jsx';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const UserDetails = () => {
   const [userData, setUserData] = useState(null);
@@ -15,16 +17,20 @@ export const UserDetails = () => {
   const navigate = useNavigate();
   const usertype = localStorage.getItem('userType');
   const token = localStorage.getItem('token');
-   
+
   const fetchData = async () => {
-    const token=localStorage.getItem("token")
-      if (!token) {
-        navigate("/login")
-      }
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    setLoading(true);
     try {
       const res = await axios.get(`${BASE_URL}/fetchuserdata/${usertype}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       if (res.status === 200) {
         setUserData(res.data);
       } else {
@@ -32,20 +38,24 @@ export const UserDetails = () => {
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
-              navigate("/login")
+      toast.error('Failed to load user data.');
+      navigate('/login');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (usertype && token) fetchData();
-    else setLoading(false);
-
+    if (usertype && token) {
+      fetchData();
+    } else {
+      setLoading(false);
+    }
   }, [usertype, token]);
 
   const handleDownloadCertificate = async () => {
     try {
+      toast.info('Downloading certificate...');
       const res = await axios.get(`${BASE_URL}/certificate/${userData._id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -60,14 +70,32 @@ export const UserDetails = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+
+      toast.success('Certificate downloaded successfully!');
     } catch (error) {
       console.error('Download error:', error);
-      alert('Failed to download certificate.');
+      toast.error('Failed to download certificate.');
     }
   };
 
-  if (loading) return <div className="text-center py-6 text-gray-500">Loading...</div>;
-  if (!userData) return <div className="text-center py-6 text-red-500">Unable to load user data.</div>;
+  if (loading) {
+    return (
+      <div className="w-full h-screen flex flex-col justify-center items-center bg-gray-50 font-[Poppins]">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-red-600 border-solid"></div>
+        <p className="mt-4 text-gray-600">Loading your profile...</p>
+        <ToastContainer position="top-right" autoClose={3000} />
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <div className="text-center py-6 text-red-500">
+        Unable to load user data.
+        <ToastContainer position="top-right" autoClose={3000} />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -168,6 +196,9 @@ export const UserDetails = () => {
           refreshData={fetchData}
         />
       )}
+
+      {/* Toastify Container */}
+      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };

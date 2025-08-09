@@ -143,18 +143,34 @@ const Showmyreq = () => {
                       <MdPerson className="text-red-400" />
                       <span><strong>Name:</strong> {stud.name}</span>
                     </div>
+
+                    {/* Email - clickable when accepted */}
                     <div className="flex items-center gap-2">
-                      <MdEmail className="text-red-400" />
-                      <span><strong>Email:</strong> {stud.email}</span>
+                      <a
+                        href={`mailto:${stud.email}`}
+                        className={`flex items-center gap-1 ${req.status === 'accepted' ? 'text-blue-600 font-semibold' : 'text-red-400'}`}
+                      >
+                        <MdEmail className={`${req.status === 'accepted' ? 'text-blue-600' : 'text-red-400'}`} />
+                        <span><strong>Email:</strong> {stud.email}</span>
+                      </a>
                     </div>
+
                     <div className="flex items-center gap-2">
                       <MdBloodtype className="text-red-400" />
                       <span><strong>Blood Group:</strong> {stud.bloodGroup}</span>
                     </div>
+
+                    {/* Phone - clickable when accepted */}
                     <div className="flex items-center gap-2">
-                      <MdPhone className="text-red-400" />
-                      <span><strong>Phone:</strong> {stud.phone || 'N/A'}</span>
+                      <a
+                        href={`tel:${stud.phone}`}
+                        className={`flex items-center gap-1 ${req.status === 'accepted' ? 'text-green-600 font-semibold' : 'text-red-400'}`}
+                      >
+                        <MdPhone className={`${req.status === 'accepted' ? 'text-green-600' : 'text-red-400'}`} />
+                        <span><strong>Phone:</strong> {stud.phone || 'N/A'}</span>
+                      </a>
                     </div>
+
                     <div className="flex items-center gap-2">
                       <MdLocationOn className="text-red-400" />
                       <span><strong>Address:</strong> {stud.address || 'N/A'}</span>

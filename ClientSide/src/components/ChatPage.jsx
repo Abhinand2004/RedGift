@@ -1,25 +1,26 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { io } from 'socket.io-client';
-import axios from 'axios';
-import { BASE_URL } from './api.jsx';
-import Navbar from './Navbar';
+import React, { useEffect, useRef, useState } from "react";
+import { io } from "socket.io-client";
+import axios from "axios";
+import { BASE_URL } from "./api.jsx";
+import { useNavigate } from "react-router-dom";
 
-const socket = io('http://localhost:3000'); // Change this to deployed URL when hosting
+const socket = io("http://localhost:3000"); // Change to deployed URL when hosting
 
 export const ChatPage = ({ person }) => {
   const [messages, setMessages] = useState([]);
-  const [msg, setMsg] = useState('');
+  const [msg, setMsg] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const messagesEndRef = useRef(null);
+  const navigate = useNavigate();
 
-  const token = localStorage.getItem('token');
-  const usertype = localStorage.getItem('userType');
+  const token = localStorage.getItem("token");
+  const usertype = localStorage.getItem("userType");
 
   const receiverId = person?._id;
 
-  // Scroll to bottom when new message is added
+  // Scroll to bottom
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -27,12 +28,15 @@ export const ChatPage = ({ person }) => {
 
     const fetchUser = async () => {
       try {
-        const { data: user } = await axios.get(`${BASE_URL}/fetchuserdata/${usertype}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const { data: user } = await axios.get(
+          `${BASE_URL}/fetchuserdata/${usertype}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setCurrentUser(user);
       } catch (err) {
-        console.error('Failed to fetch current user:', err);
+        console.error("Failed to fetch current user:", err);
       }
     };
 
@@ -42,32 +46,35 @@ export const ChatPage = ({ person }) => {
   useEffect(() => {
     if (!currentUser || !receiverId) return;
 
-    socket.emit('join-room', currentUser._id);
+    socket.emit("join-room", currentUser._id);
 
     const fetchMessages = async () => {
       try {
-        const { data: msgHistory } = await axios.get(`${BASE_URL}/messages/${receiverId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const { data: msgHistory } = await axios.get(
+          `${BASE_URL}/messages/${receiverId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setMessages(msgHistory);
       } catch (err) {
-        console.error('Failed to fetch messages:', err);
+        console.error("Failed to fetch messages:", err);
       }
     };
 
     fetchMessages();
 
-    socket.on('receive_message', (message) => {
+    socket.on("receive_message", (message) => {
       setMessages((prev) => [...prev, message]);
     });
 
     return () => {
-      socket.off('receive_message');
+      socket.off("receive_message");
     };
   }, [currentUser, receiverId]);
 
   useEffect(() => {
-    scrollToBottom(); // Auto scroll on message update
+    scrollToBottom();
   }, [messages]);
 
   const sendMessage = async () => {
@@ -84,10 +91,10 @@ export const ChatPage = ({ person }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      socket.emit('send_message', data);
-      setMsg('');
+      socket.emit("send_message", data);
+      setMsg("");
     } catch (err) {
-      console.error('Message sending failed', err);
+      console.error("Message sending failed", err);
     }
   };
 
@@ -100,53 +107,55 @@ export const ChatPage = ({ person }) => {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
-    
-
-      {/* Chat Section */}
-      <div className="flex-1 flex flex-col p-4 bg-gray-50">
-        <h2 className="text-xl font-bold mb-2 text-gray-800">
-          Chat with {person?.username || person?.name || 'User'}
+    <div className="flex flex-col h-screen bg-red-50 font-[Poppins]">
+      {/* Header */}
+      <div className="flex items-center justify-between bg-red-600 text-white px-4 py-3 shadow-md">
+        <button
+          onClick={() => navigate("/")}
+          className="bg-white text-red-600 px-3 py-1 rounded hover:bg-gray-100 transition"
+        >
+          Home
+        </button>
+        <h2 className="text-lg font-bold">
+          Chat with {person?.username || person?.name || "User"}
         </h2>
+        <div className="w-14"></div>
+      </div>
 
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto border rounded p-3 bg-white shadow space-y-2">
-          {messages.map((m, i) => (
-            <div key={i} className="relative">
-              {i === messages.length - 1 && (
-                <div className="text-center text-sm text-gray-400 mb-2">Last message</div>
-              )}
-              <div
-                className={`p-2 rounded max-w-xs break-words ${
-                  m.senderId === currentUser?._id
-                    ? 'bg-blue-100 self-end text-right ml-auto'
-                    : 'bg-gray-200 self-start'
-                }`}
-              >
-                {m.content}
-              </div>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
+      {/* Chat Messages */}
+   {/* Chat Messages */}
+<div className="flex-1 overflow-y-auto p-4 space-y-3">
+  {messages.map((m, i) => (
+    <div key={i} className="flex flex-col">
+      <div
+        className={`p-3 rounded-lg w-70 shadow ${
+          m.senderId === currentUser?._id
+            ? "bg-red-500 text-white self-end"
+            : "bg-white text-gray-800 self-start "
+        }`}
+      >
+        {m.content}
+      </div>
+    </div>
+  ))}
+  <div ref={messagesEndRef} />
+</div>
 
-        {/* Input */}
-        <div className="flex mt-2">
-          <input
-            value={msg}
-            onChange={(e) => setMsg(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            className="flex-1 border rounded-l p-2 outline-none"
-            placeholder="Type your message..."
-          />
-          <button
-            onClick={sendMessage}
-            className="bg-blue-600 text-white px-4 py-2 rounded-r hover:bg-blue-700"
-          >
-            Send
-          </button>
-        </div>
+      {/* Input Box */}
+      <div className="flex p-3 bg-white border-t">
+        <input
+          value={msg}
+          onChange={(e) => setMsg(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          className="flex-1 border border-gray-300 rounded-l px-3 py-2 outline-none focus:ring-2 focus:ring-red-400"
+          placeholder="Type your message..."
+        />
+        <button
+          onClick={sendMessage}
+          className="bg-red-600 text-white px-4 py-2 rounded-r hover:bg-red-700 transition"
+        >
+          Send
+        </button>
       </div>
     </div>
   );

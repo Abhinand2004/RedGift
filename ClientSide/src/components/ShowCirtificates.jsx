@@ -258,7 +258,7 @@ const ShowCertificates = () => {
   if (certificates.length === 0)
     return (
       <div className="max-w-md mx-auto mt-8 p-4 text-center text-gray-600 font-medium">
-        No certificates found.
+        No certificates yet.
       </div>
     );
 

@@ -52,7 +52,7 @@ const Requistacceptstudent = () => {
   }, [isApproved]);
 
   const handleAccept = async () => {
-    if (!window.confirm("Do you accept the blood donation request from your college? Your data will be visible to users and hospitals.")) return;
+    if (!window.confirm("Do you accept the blood donation request from your college?")) return;
     try {
       const token = localStorage.getItem('token');
       await axios.put(`${BASE_URL}/updatecollagerequest`, { status: true }, {
@@ -112,7 +112,7 @@ const Requistacceptstudent = () => {
       await axios.post(`${BASE_URL}/acceptbystudent`, { id, status: 'rejected' }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      toast.info('Request rejected.');
+      toast.error('Request rejected.');
       fetchRequests();
     } catch (error) {
       toast.error('Failed to reject the request');
@@ -130,8 +130,7 @@ const Requistacceptstudent = () => {
       {isApproved === null && (
         <div className="bg-white shadow p-4 rounded-lg border-l-4 border-red-500 mb-4">
           <p className="text-sm text-gray-700 mb-3">
-            You have a request from your college. By accepting, your details (name, phone, address, email, blood group)
-            will be public for all users and hospitals.
+            You have a request from your college. By accepting, your details will be public.
           </p>
           <button
             className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
@@ -160,7 +159,7 @@ const Requistacceptstudent = () => {
         <>
           <div className="bg-red-50 border border-red-300 p-4 rounded-lg mb-4">
             <p className="text-sm text-red-700 mb-3">
-              Your details are public for blood donation requests. If you no longer wish to participate, cancel below.
+              Your details are public for blood donation requests. Cancel if you no longer wish to participate.
             </p>
             <button
               className={`w-full sm:w-auto px-4 py-2 rounded text-white bg-red-600 hover:bg-red-700 transition ${cancelLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -193,39 +192,56 @@ const Requistacceptstudent = () => {
                       <th className="px-3 py-2 sm:px-4 sm:py-3 text-center">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {requests.map((req) => (
-                      <tr key={req._id} className="hover:bg-red-50">
-                        <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap">{req.requestedUsername}</td>
-                        <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap hidden sm:table-cell">
-                          {new Date(req.requestedAt).toLocaleString()}
-                        </td>
-                        <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap capitalize">{req.status}</td>
-                        <td className="px-3 py-2 sm:px-4 sm:py-3 hidden md:table-cell">
-                          <div className="truncate max-w-xs">{req.message}</div>
-                        </td>
-                        <td className="px-3 py-2 sm:px-4 sm:py-3 hidden lg:table-cell">{req.requesterType}</td>
-                        <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
-                          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                            <button
-                              onClick={() => handleAcceptIndividual(req._id)}
-                              disabled={actionLoadingId === req._id}
-                              className={`px-2 sm:px-3 py-1 text-xs sm:text-sm bg-green-600 text-white rounded hover:bg-green-700 transition ${actionLoadingId === req._id ? 'opacity-50' : ''}`}
-                            >
-                              {actionLoadingId === req._id ? "..." : "Accept"}
-                            </button>
-                            <button
-                              onClick={() => handleRejectIndividual(req._id)}
-                              disabled={actionLoadingId === req._id}
-                              className={`px-2 sm:px-3 py-1 text-xs sm:text-sm bg-red-500 text-white rounded hover:bg-red-600 transition ${actionLoadingId === req._id ? 'opacity-50' : ''}`}
-                            >
-                              {actionLoadingId === req._id ? "..." : "Reject"}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
+                 <tbody className="divide-y divide-gray-200">
+  {requests.map((req) => {
+    let rowBg = "";
+    if (req.status === "accepted") rowBg = "bg-green-50";
+    else if (req.status === "rejected") rowBg = "bg-red-50";
+    else rowBg = "bg-yellow-50"; // pending
+
+    return (
+      <tr key={req._id} className={`${rowBg} hover:opacity-90`}>
+        <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
+          {req.requestedUsername}
+        </td>
+        <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap hidden sm:table-cell">
+          {new Date(req.requestedAt).toLocaleString()}
+        </td>
+        <td
+          className={`px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap capitalize font-semibold
+            ${req.status === 'accepted' ? 'text-green-600' :
+              req.status === 'rejected' ? 'text-red-600' :
+              'text-yellow-600'}`}
+        >
+          {req.status}
+        </td>
+        <td className="px-3 py-2 sm:px-4 sm:py-3 hidden md:table-cell">
+          <div className="truncate max-w-xs">{req.message}</div>
+        </td>
+        <td className="px-3 py-2 sm:px-4 sm:py-3 hidden lg:table-cell">{req.requesterType}</td>
+        <td className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <button
+              onClick={() => handleAcceptIndividual(req._id)}
+              disabled={actionLoadingId === req._id}
+              className={`px-2 sm:px-3 py-1 text-xs sm:text-sm bg-green-600 text-white rounded hover:bg-green-700 transition ${actionLoadingId === req._id ? 'opacity-50' : ''}`}
+            >
+              {actionLoadingId === req._id ? "..." : "Accept"}
+            </button>
+            <button
+              onClick={() => handleRejectIndividual(req._id)}
+              disabled={actionLoadingId === req._id}
+              className={`px-2 sm:px-3 py-1 text-xs sm:text-sm bg-red-500 text-white rounded hover:bg-red-600 transition ${actionLoadingId === req._id ? 'opacity-50' : ''}`}
+            >
+              {actionLoadingId === req._id ? "..." : "Reject"}
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
+
                 </table>
               </div>
             </div>

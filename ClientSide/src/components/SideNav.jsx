@@ -11,14 +11,18 @@ import {
   MdMenu,
   MdAccountCircle,
   MdLogout,
-   MdMessage
+   MdMessage,
+   MdWorkspacePremium,
+   MdFileDownload,
+   MdAssessment
 } from "react-icons/md";
 import { FaAmbulance } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 const allNavItems = [
   { label: "Profile", icon: <MdAccountCircle /> },
-  { label: "Request Donors", icon: <MdVolunteerActivism />, roles: ["user", "college", "admin", "hospital"] },
+  { label: "Request Donors", icon: <MdVolunteerActivism />, roles: ["user", "admin", "hospital"] },
+  { label: "Show Students", icon: <MdAssignment />, roles: ["college"] },
   { label: "My Requests", icon: <MdListAlt />, roles: ["admin", "user", "hospital"] },
   { label: "Hospital & College", icon: <MdLocalHospital />, roles: ["admin"] },
   { label: "Create Announcement", icon: <MdCampaign />, roles: ["admin"] },
@@ -27,10 +31,11 @@ const allNavItems = [
   { label: "Show Ambulance", icon: <FaAmbulance />, roles: ["admin", "user", "hospital", "college", "student"] },
   { label: "Create Student", icon: <MdPeople />, roles: ["college"] },
   { label: "Show Requests", icon: <MdAssignment />, roles: ["student"] },
-  { label: "Student Status", icon: <MdAssignment />, roles: ["college"] },
+  { label: "Student Status", icon: <MdAssessment />, roles: ["college"] },
   { label: "Chats", icon: <MdMessage />, roles: ["hospital", "student", "user"] },
-  { label: "Creat Cirtificate", icon: <MdAssignment />, roles: ["hospital"] },
-  { label: "Show Cirtificates", icon: <MdAssignment />, roles: ["student"] },
+  { label: "Creat Cirtificate", icon: <MdWorkspacePremium />, roles: ["hospital"] },
+  { label: "Show Cirtificates", icon: <MdFileDownload />, roles: ["student"] },
+
 
 ];
 

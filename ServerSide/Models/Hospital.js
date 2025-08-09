@@ -17,7 +17,7 @@ const hospitalSchema = new mongoose.Schema({
   },
 
   // Status set by admin
-  isApproved: { type: Boolean, default: false,},
+  isApproved: { type: Boolean, default: null,},
 
   bloodRequests: [
     {

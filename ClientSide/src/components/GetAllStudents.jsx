@@ -13,22 +13,50 @@ const GetAllStudents = () => {
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [search, setSearch] = useState("");
   const [bloodGroupFilter, setBloodGroupFilter] = useState("all");
+  const [approvalStatus, setApprovalStatus] = useState(null);
 
   const userType = localStorage.getItem("userType");
   const token = localStorage.getItem("token");
 
   useEffect(() => {
+    const fetchUserApproval = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/fetchuserdata/${userType}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setApprovalStatus(res.data.isApproved);
+      } catch (err) {
+        console.error("Failed to fetch user approval status", err);
+        setError("Failed to fetch user approval status");
+      }
+    };
+
+    fetchUserApproval();
+  }, [userType, token]);
+
+  useEffect(() => {
+    if (
+      (userType === "college" || userType === "hospital") &&
+      approvalStatus !== true
+    ) {
+      setLoading(false); 
+      return;
+    }
+
     fetchStudents();
-  }, []);
+  }, [approvalStatus, userType]);
 
   useEffect(() => {
     let result = students;
 
     if (search.trim()) {
-      result = result.filter((student) =>
-        student.name?.toLowerCase().includes(search.toLowerCase()) ||
-        student.email?.toLowerCase().includes(search.toLowerCase()) ||
-        student.bloodGroup?.toLowerCase().includes(search.toLowerCase())
+      result = result.filter(
+        (student) =>
+          student.name?.toLowerCase().includes(search.toLowerCase()) ||
+          student.email?.toLowerCase().includes(search.toLowerCase()) ||
+          student.bloodGroup?.toLowerCase().includes(search.toLowerCase())
       );
     }
 
@@ -46,13 +74,12 @@ const GetAllStudents = () => {
       const res = await axios.get(`${BASE_URL}/getallstudent/${userType}`, {
         headers: {
           Authorization: `Bearer ${token}`,
-        }
+        },
       });
       setStudents(res.data || []);
     } catch (err) {
       setError("Failed to fetch students");
       console.log(err);
-      
     } finally {
       setLoading(false);
     }
@@ -77,16 +104,42 @@ const GetAllStudents = () => {
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-white flex items-center justify-center">
         <div className="text-center">
           <Loader2 size={48} className="animate-spin text-red-500 mb-4" />
-          <p className="text-gray-600">Loading students...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
+  if (userType === "college" || userType === "hospital") {
+    if (approvalStatus === null) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-white p-6">
+          <div className="text-center text-gray-700">
+            <AlertCircle className="mx-auto mb-4 text-yellow-500" size={48} />
+            <h2 className="text-xl font-semibold mb-2">Your request is under review</h2>
+            <p>Please wait for the approval to access the blood donors.</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (approvalStatus === false) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-white p-6">
+          <div className="text-center text-gray-700">
+            <AlertCircle className="mx-auto mb-4 text-red-500" size={48} />
+            <h2 className="text-xl font-semibold mb-2">You can't request</h2>
+            <p>Your account is not approved to make blood requests.</p>
+          </div>
+        </div>
+      );
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-white p-6">
       <RequestModal open={modalOpen} onClose={handleCloseModal} studentId={selectedStudentId} />
-      
+
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-red-600 mb-2">Blood Donors</h1>
@@ -113,8 +166,10 @@ const GetAllStudents = () => {
               className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500"
             >
               <option value="all">All Blood Groups</option>
-              {bloodGroups.map(group => (
-                <option key={group} value={group}>{group}</option>
+              {bloodGroups.map((group) => (
+                <option key={group} value={group}>
+                  {group}
+                </option>
               ))}
             </select>
           </div>

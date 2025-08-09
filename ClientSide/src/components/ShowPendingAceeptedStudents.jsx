@@ -8,7 +8,7 @@ import {
   CircularProgress,
   Alert,
   Container,
-  Grid,
+  Grid
 } from '@mui/material';
 
 const ShowPendingAcceptedStudents = () => {
@@ -45,40 +45,65 @@ const ShowPendingAcceptedStudents = () => {
   }, [token, userType]);
 
   return (
-    <Container className="py-10">
-      <div className="text-center mb-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-red-600 mb-2">Pending Students</h2>
-        <p className="text-gray-600 text-base md:text-lg">These students are not yet approved</p>
+    <Container sx={{ py: 6 }}>
+      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <Typography variant="h4" fontWeight="bold" color="error" gutterBottom>
+          Pending Students
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          These students are not yet approved
+        </Typography>
       </div>
 
       {loading ? (
-        <div className="flex justify-center mt-10">
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px' }}>
           <CircularProgress color="error" />
         </div>
       ) : error ? (
-        <Alert severity="error" className="text-base mt-6">{error}</Alert>
+        <Alert severity="error" sx={{ mt: 3, fontSize: '1rem' }}>{error}</Alert>
       ) : students.length === 0 ? (
-        <Typography variant="h6" className="text-center text-gray-500 mt-6">
+        <Typography variant="h6" align="center" color="text.secondary" sx={{ mt: 3 }}>
           No pending students found.
         </Typography>
       ) : (
         <Grid container spacing={4}>
           {students.map((student) => (
             <Grid item xs={12} sm={6} md={4} key={student._id}>
-              <Card className="shadow-xl hover:shadow-2xl transition duration-300 border-t-4 border-red-600 rounded-2xl bg-white">
-                <CardContent className="p-6">
-                  <Typography variant="h6" className="text-red-600 font-semibold mb-2">
+              <Card
+                sx={{
+                  minWidth: 280,
+                  borderTop: '4px solid #d32f2f',
+                  borderRadius: '16px',
+                  boxShadow: 4,
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                    boxShadow: 8
+                  }
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" color="error" fontWeight="bold" gutterBottom>
                     {student.name}
                   </Typography>
-                  <div className="text-gray-800 space-y-1 text-sm">
-                    <p><b>Email:</b> {student.email}</p>
-                    <p><b>Phone:</b> {student.phone}</p>
-                    <p><b>Blood Group:</b> {student.bloodGroup}</p>
-                    <p><b>Address:</b> {student.address || 'N/A'}</p>
-                    <p><b>Pincode:</b> {student.pincode || 'N/A'}</p>
-                    <p><b>State:</b> {student.state || 'N/A'}</p>
-                    <p><b>College ID:</b> {student.collegeId}</p>
-                  </div>
+                  <Typography variant="body2" color="text.primary">
+                    <b>Email:</b> {student.email}
+                  </Typography>
+                  <Typography variant="body2" color="text.primary">
+                    <b>Phone:</b> {student.phone}
+                  </Typography>
+                  <Typography variant="body2" color="text.primary">
+                    <b>Blood Group:</b> {student.bloodGroup}
+                  </Typography>
+                  <Typography variant="body2" color="text.primary">
+                    <b>Address:</b> {student.address || 'N/A'}
+                  </Typography>
+                  <Typography variant="body2" color="text.primary">
+                    <b>Pincode:</b> {student.pincode || 'N/A'}
+                  </Typography>
+                  <Typography variant="body2" color="text.primary">
+                    <b>State:</b> {student.state || 'N/A'}
+                  </Typography>
                 </CardContent>
               </Card>
             </Grid>

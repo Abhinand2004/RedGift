@@ -7,13 +7,16 @@ import ShowAllAmbulance from '../components/ShowAllAmbulance';
 import Showmyreq from '../components/Showmyreq';
 import { ChatList } from '../components/ChatList';
 import { ChatPage } from '../components/ChatPage'; // Import ChatPage
-
+import CreateNewStudents from "../components/CreateNewStudents"
+import ShowPendingAcceptedStudents from '../components/ShowPendingAceeptedStudents';
 const COMPONENTS = {
   "Profile": <UserDetails />,
   "My Requests": <Showmyreq />,
-  "Request Donors": <GetAllStudents />,
+  "Show Students": <GetAllStudents />,
   "Show Announcements": <ShowAllNotifications />,
   "Show Ambulance": <ShowAllAmbulance />,
+  "Create Student":<CreateNewStudents/>,
+  "Student Status":<ShowPendingAcceptedStudents/>
 };
 
 const HomePageForHospital = () => {

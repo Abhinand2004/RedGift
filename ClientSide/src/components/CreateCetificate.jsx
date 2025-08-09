@@ -35,43 +35,58 @@ const AcceptedStudentsWithCertificates = () => {
   const [certificates, setCertificates] = useState({}); // Map studentId -> certificateUrl
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const token = localStorage.getItem('token');
-  const userType = localStorage.getItem('userType');
+  const [userType, setUserType] = useState('');
+  const [isApproved, setIsApproved] = useState(null);
 
+  const token = localStorage.getItem('token');
+  const storedUserType = localStorage.getItem('userType');
+
+  // Fetch user data and accepted students on mount
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError('');
+      if (!token || !storedUserType) {
+        setError('User is not authenticated.');
+        setLoading(false);
+        return;
+      }
 
-        // Fetch accepted students
-        const studentsRes = await axios.get(`${BASE_URL}/showmyrequest`, {
+      setLoading(true);
+      setError('');
+      setUserType(storedUserType);
+
+      try {
+        // Fetch user approval status & hospital data if applicable
+        const userRes = await axios.get(`${BASE_URL}/fetchuserdata/${storedUserType}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const accepted = (studentsRes.data.requests || []).filter(
-          (req) => req.status === 'accepted'
-        );
-        setAcceptedStudents(accepted);
-
-        // Fetch hospital data if userType is hospital
-        if (userType === 'hospital') {
-          const hospitalRes = await axios.get(`${BASE_URL}/fetchuserdata/${userType}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setHospitalData(hospitalRes.data);
+        setIsApproved(userRes.data.isApproved);
+        if (storedUserType === 'hospital') {
+          setHospitalData(userRes.data);
         }
 
-        // Fetch certificates and create a map studentId -> certificateUrl
-        const certRes = await axios.get(`${BASE_URL}/mycertificates`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        if (userRes.data.isApproved === true) {
+          // Fetch accepted students
+          const studentsRes = await axios.get(`${BASE_URL}/showmyrequest`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
 
-        const certMap = {};
-        certRes.data.certificates.forEach((cert) => {
-          certMap[cert.studentId] = cert.certificateUrl;
-        });
-        setCertificates(certMap);
+          const accepted = (studentsRes.data.requests || []).filter(
+            (req) => req.status === 'accepted'
+          );
+          setAcceptedStudents(accepted);
+
+          // Fetch certificates
+          const certRes = await axios.get(`${BASE_URL}/mycertificates`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          const certMap = {};
+          certRes.data.certificates.forEach((cert) => {
+            certMap[cert.studentId] = cert.certificateUrl;
+          });
+          setCertificates(certMap);
+        }
       } catch (err) {
         setError(err.response?.data?.message || err.message || 'Error fetching data');
       } finally {
@@ -79,45 +94,61 @@ const AcceptedStudentsWithCertificates = () => {
       }
     };
 
-    if (token) {
-      fetchData();
-    } else {
-      setError('User is not authenticated.');
-      setLoading(false);
-    }
-  }, [token, userType]);
+    fetchData();
+  }, [token, storedUserType]);
 
-  // Function to generate PDF Blob using jsPDF
+  // Generate PDF certificate with border and styling
   const generateCertificatePdfBlob = (student, hospital) => {
-    const doc = new jsPDF();
+    const doc = new jsPDF('p', 'pt', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // Draw border
+    doc.setLineWidth(2);
+    doc.setDrawColor(150, 0, 0);
+    doc.rect(20, 20, pageWidth - 40, pageHeight - 40);
+
+    // Title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(26);
+    doc.setTextColor(178, 34, 34);
+    doc.text('Blood Donation Certificate', pageWidth / 2, 100, { align: 'center' });
+
+    // Subtitle & body
+    doc.setFontSize(16);
+    doc.setTextColor(0);
+    doc.setFont('helvetica', 'normal');
+    doc.text('This is to certify that', pageWidth / 2, 150, { align: 'center' });
 
     doc.setFontSize(22);
-    doc.text('Blood Donation Certificate', 105, 30, null, null, 'center');
+    doc.setFont('helvetica', 'bold');
+    doc.text(student.name, pageWidth / 2, 190, { align: 'center' });
 
     doc.setFontSize(16);
-    doc.text('This is to certify that', 105, 50, null, null, 'center');
-
-    doc.setFontSize(20);
-    doc.text(student.name, 105, 65, null, null, 'center');
-
-    doc.setFontSize(16);
-    doc.text('has successfully donated blood at', 105, 80, null, null, 'center');
+    doc.setFont('helvetica', 'normal');
+    doc.text('has successfully donated blood at', pageWidth / 2, 230, { align: 'center' });
 
     doc.setFontSize(18);
-    doc.text(hospital.name || hospital.collegeName || 'Hospital Name', 105, 95, null, null, 'center');
+    doc.setFont('helvetica', 'bold');
+    const hospitalName = hospital.name || hospital.collegeName || 'Hospital Name';
+    doc.text(hospitalName, pageWidth / 2, 265, { align: 'center' });
 
     doc.setFontSize(14);
-    doc.text(`Address: ${hospital.address || 'N/A'}`, 105, 110, null, null, 'center');
+    doc.setFont('helvetica', 'normal');
+    const hospitalAddress = hospital.address || 'N/A';
+    const hospitalPhone = hospital.phone || 'N/A';
+    doc.text(`Address: ${hospitalAddress}`, pageWidth / 2, 300, { align: 'center' });
+    doc.text(`Phone: ${hospitalPhone}`, pageWidth / 2, 320, { align: 'center' });
 
-    doc.text(`Phone: ${hospital.phone || 'N/A'}`, 105, 120, null, null, 'center');
-
+    // Footer message
     doc.setFontSize(12);
-    doc.text('Thank you for your valuable contribution!', 105, 140, null, null, 'center');
+    doc.setTextColor(120);
+    doc.text('Thank you for your valuable contribution!', pageWidth / 2, pageHeight - 100, { align: 'center' });
 
     return doc.output('blob');
   };
 
-  // Upload the generated PDF blob to backend
+  // Upload PDF to backend
   const handleCreateCertificate = async (student, requestId) => {
     if (!hospitalData) {
       alert('Hospital details not found.');
@@ -129,7 +160,7 @@ const AcceptedStudentsWithCertificates = () => {
 
       const formData = new FormData();
       formData.append('studentId', student._id);
-      formData.append('requestId', requestId); // <== Send request id here
+      formData.append('requestId', requestId);
       formData.append('collegeId', hospitalData._id || hospitalData.collegeId || '');
       formData.append('collegeName', hospitalData.name || hospitalData.collegeName || 'Hospital Name');
       formData.append('certificate', pdfBlob, `${student.name}_certificate.pdf`);
@@ -179,6 +210,7 @@ const AcceptedStudentsWithCertificates = () => {
     }
   };
 
+  // Loading spinner
   if (loading)
     return (
       <div className="flex justify-center items-center h-64">
@@ -205,12 +237,44 @@ const AcceptedStudentsWithCertificates = () => {
       </div>
     );
 
+  // Error message
   if (error)
     return (
       <div className="max-w-md mx-auto mt-8 p-4 border border-red-400 text-red-700 bg-red-100 rounded font-semibold text-center">
         {error}
       </div>
     );
+
+  // Show messages based on isApproved
+  if (isApproved === null) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-yellow-50 px-4">
+        <div className="bg-white shadow-lg rounded-xl p-8 max-w-md w-full text-center border-2 border-yellow-400">
+          <p className="text-yellow-700 text-xl font-semibold mb-3">
+            Your request is under review.
+          </p>
+          <p className="text-gray-800 text-lg leading-relaxed">
+            Please add your certificate information in your profile section for faster approval.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isApproved === false) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-red-50 px-4">
+        <div className="bg-white shadow-lg rounded-xl p-8 max-w-md w-full text-center border-2 border-red-400">
+          <p className="text-red-700 text-xl font-semibold mb-3">
+            Your request has been rejected.
+          </p>
+          <p className="text-gray-800 text-lg leading-relaxed">
+            You cannot view accepted students or certificates.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto my-8 px-4">
@@ -243,7 +307,7 @@ const AcceptedStudentsWithCertificates = () => {
                     <div className="mt-4 md:mt-0 flex flex-col md:flex-row gap-2">
                       {!certificates[stud._id] ? (
                         <button
-                          onClick={() => handleCreateCertificate(stud, req._id)} // pass request _id here
+                          onClick={() => handleCreateCertificate(stud, req._id)}
                           className="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 font-semibold transition-colors duration-200 whitespace-nowrap"
                         >
                           <AddIcon />
